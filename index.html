@@ -1,0 +1,895 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#09151d">
+<meta name="description" content="Send a pulse into the dark. Recover the lost beacons and return to the lift.">
+<title>Signal Below · Echo Rescue</title>
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHJlY3QgeD0iMiIgeT0iMiIgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiByeD0iMTYiIGZpbGw9IiMxNzM0M2EiIHN0cm9rZT0iIzc2ZDljOSIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgPGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYTdmZmRjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS13aWR0aD0iMyI+CiAgICA8cGF0aCBkPSJNMTMgNDBhMjQgMjQgMCAwIDEgMzggME0xOSAzNGExNyAxNyAwIDAgMSAyNiAwTTI1IDI3YTkgOSAwIDAgMSAxNCAwIi8+CiAgPC9nPgogIDxjaXJjbGUgY3g9IjMyIiBjeT0iNDIiIHI9IjQiIGZpbGw9IiNmZmMwODQiLz4KPC9zdmc+Cg==">
+<style>
+:root{color-scheme:dark;--ink:#e5f1ed;--muted:#9db2b8;--cyan:#88f2e2;--gold:#ffc084;--line:#334d57;background:#09151d;font-family:system-ui,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at 25% 8%,#1b3340,#0a1821 48%,#080f17);color:var(--ink);min-height:100dvh}
+button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
+button:focus-visible{outline:2px solid #fff1af;outline-offset:3px}
+#app{width:min(1060px,100%);margin:auto;padding:max(13px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}
+.top,.heading,.boardline,.footer{display:flex;align-items:center;justify-content:space-between}
+.top{gap:8px;padding-bottom:11px;border-bottom:1px solid #37515a}
+.identity{display:flex;gap:10px;align-items:center;margin-right:auto;min-width:0}
+.identity svg{width:38px;flex:none;fill:#17343a;stroke:#76d9c9;stroke-width:1.6}
+.identity svg path{fill:none;stroke-linecap:round}
+.identity small,.eyebrow,.boardline,.metrics small,.footer,.pulse small,.tag{font:700 10px/1.4 ui-monospace,Consolas,monospace;letter-spacing:.12em;color:var(--muted)}
+.identity small{font-size:8px;display:block;white-space:nowrap}
+.wordmark{font:900 16px/1.2 system-ui;letter-spacing:.11em}
+.icon,.help,.footer button,.dpad button,.button{border:1px solid #42616c;background:linear-gradient(#273e47,#182c36);border-radius:9px;min-height:44px}
+.icon{width:44px;font-size:22px}
+.heading{gap:8px;margin:15px 0 11px}
+.eyebrow,.tag{color:var(--cyan)}
+h1,h2{font:900 clamp(23px,5vw,43px)/1.05 system-ui;margin:3px 0 0;letter-spacing:-.046em}
+.help{font-size:12px;padding:0 11px;white-space:nowrap}
+.help b{color:var(--cyan);padding-left:3px}
+.workspace{display:grid;grid-template-columns:minmax(0,1fr) 282px;gap:15px;align-items:start}
+.board,.console{min-width:0;background:#0e1c25;border:1px solid #34505a;border-radius:15px;box-shadow:0 12px 35px #030a0f8a}
+.board{overflow:hidden}
+.boardline{height:29px;padding:0 11px;background:#172b35;font-size:9px;letter-spacing:.12em}
+.boardline i,.lamp{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--cyan);margin-right:6px;box-shadow:0 0 9px #75f7e077}
+.boardline b{color:#e2f0e8}
+canvas{display:block;width:100%;aspect-ratio:578 / 482;max-height:calc(100dvh - 234px);touch-action:none;background:#09151d}
+.console{padding:12px;display:grid;gap:10px}
+.metrics{display:grid;grid-template-columns:1fr 1.15fr .8fr;gap:5px}
+.metrics div{background:#172a34;border:1px solid #2c4651;border-radius:8px;padding:8px 6px;min-width:0}
+.metrics small{display:block;font-size:8px;letter-spacing:.04em;white-space:nowrap}
+.metrics strong{display:block;color:var(--gold);font:800 19px/1.3 ui-monospace,Consolas,monospace}
+.message{display:flex;align-items:center;background:#13262e;border:1px solid #294955;padding:8px;border-radius:8px;min-height:44px;font-size:12px;line-height:1.25}
+.lamp{flex:none}
+.controls{display:flex;justify-content:space-between;gap:10px;align-items:stretch}
+.dpad{display:grid;grid-template-columns:repeat(3,44px);grid-template-rows:repeat(2,44px);gap:4px}
+.dpad button{font-size:22px;padding:0}
+.up{grid-column:2}.left{grid-row:2;grid-column:1}.down{grid-row:2;grid-column:2}.right{grid-row:2;grid-column:3}
+.pulse{display:flex;justify-content:center;align-items:center;gap:7px;min-width:82px;flex:1;background:linear-gradient(#a8f5d9,#5ac9ba);color:#0d2a32;border:1px solid #b2ffe1;border-radius:11px;font-weight:950;box-shadow:inset 0 -4px #3b8b89,0 4px 18px #47b3ad33}
+.pulsemark{font-size:21px}.pulse small{display:block;color:#235154;font-size:8px}
+button:active{filter:brightness(1.18);transform:translateY(1px)}
+.footer{gap:4px;font-size:8px;letter-spacing:.04em}
+.footer button{font-size:11px;padding:0 10px}
+.signal-strip{padding:8px;border:1px solid #2f4853;border-radius:8px;background:#0b1a22;font:700 8px/1.2 monospace;letter-spacing:.1em;color:#9fb4b6}
+.signal-strip svg{display:block;width:100%;height:33px;margin:2px 0;fill:none;stroke-width:1.5}
+.baseline{stroke:#294550;stroke-dasharray:2 4}.trace{stroke:#79d9d0;filter:drop-shadow(0 0 3px #77edd980)}
+#carrier{color:#8fe9d3}
+#extras{font-size:11px;color:var(--muted);line-height:1.45}
+dialog{width:min(500px,calc(100% - 22px));max-height:calc(100dvh - 20px);padding:0;background:#142733;color:var(--ink);border:1px solid #50737c;border-radius:16px;box-shadow:0 25px 100px #020b12;overflow:auto}
+dialog::backdrop{background:#071016c7;backdrop-filter:blur(4px)}
+.sheet{padding:20px}.sheet h2{font-size:32px;margin:4px 0 12px}.sheet p{font-size:14px;line-height:1.55;color:#bfced1}
+.button{font-size:13px;padding:9px 12px;font-weight:800}.primary{background:#99edd4;color:#112f36;border-color:#b6ffe5}
+.sheetbuttons{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px}
+.sectorlist{display:grid;gap:5px}
+.sectorlist button{display:flex;justify-content:space-between;text-align:left;align-items:center;gap:8px}
+.sectorlist button:disabled{opacity:.43;cursor:default}
+.sectorlist span,.resultStars{color:var(--gold);white-space:nowrap}.resultStars{font-size:30px;letter-spacing:.1em}
+@media(max-width:700px) and (orientation:portrait){
+  #app{max-width:460px}.workspace{grid-template-columns:minmax(0,1fr);gap:8px}
+  .heading{margin:9px 0 8px}.top{padding-bottom:7px}
+  canvas{max-height:min(50dvh,440px)}.boardline{height:21px}
+  .console{padding:8px;gap:6px}.metrics div{padding:4px 7px}.metrics strong{font-size:17px}
+  .message{min-height:35px;padding:6px 8px}.footer{min-height:44px}.dpad{grid-template-columns:repeat(3,48px)}
+  .signal-strip{display:none}
+}
+@media(max-width:370px) and (orientation:portrait){
+  #app{padding-left:8px;padding-right:8px}.identity small{font-size:7px}.wordmark{font-size:14px}
+  .heading h1{font-size:22px}.help{padding:0 7px}.footer{font-size:7px}
+  canvas{max-height:min(46dvh,400px)}
+}
+@media(max-height:625px) and (orientation:portrait){
+  #app{padding-top:max(7px,env(safe-area-inset-top));padding-bottom:max(7px,env(safe-area-inset-bottom))}
+  canvas{max-height:42dvh}.boardline.bottom,.footer{display:none}
+  .controls{gap:6px}.dpad{grid-template-columns:repeat(4,44px);grid-template-rows:44px;gap:3px}
+  .dpad .left{grid-row:1;grid-column:1}.dpad .up{grid-row:1;grid-column:2}
+  .dpad .down{grid-row:1;grid-column:3}.dpad .right{grid-row:1;grid-column:4}
+  .pulse{min-width:78px;font-size:12px;gap:4px}.pulsemark{font-size:17px}
+}
+@media(max-height:520px) and (orientation:landscape){
+  #app{padding-top:max(5px,env(safe-area-inset-top));padding-bottom:max(5px,env(safe-area-inset-bottom))}
+  .top{padding-bottom:3px}.identity svg{width:29px}.heading{margin:3px 0 4px}.heading h1{font-size:21px}
+  .workspace{grid-template-columns:minmax(0,1fr) min(252px,45%);gap:8px}
+  .boardline{height:20px}.console{padding:7px;gap:5px}.metrics div{padding:3px 4px}
+  canvas{max-height:max(100px,calc(100dvh - 150px))}
+  .message{min-height:30px;padding:4px}.metrics strong{font-size:15px}.footer{font-size:7px}
+  .dpad{gap:2px}.pulse{min-width:65px;font-size:12px;gap:3px}.pulsemark{font-size:17px}
+  .signal-strip{display:none}
+}
+@media(max-height:365px) and (orientation:landscape){
+  .footer,.boardline.bottom{display:none}
+}
+
+</style>
+</head>
+<body>
+<main id="app">
+  <header class="top">
+    <div class="identity">
+      <svg viewBox="0 0 36 36" aria-hidden="true"><rect x="1" y="1" width="34" height="34" rx="9"/><path d="M8 24a13 13 0 0 1 20 0M11 20a9 9 0 0 1 14 0M15 16a4 4 0 0 1 6 0"/><circle cx="18" cy="25" r="2"/></svg>
+      <div><div class="wordmark">SIGNAL BELOW</div><small>SUBSURFACE RESCUE DIVISION</small></div>
+    </div>
+    <button class="icon" id="sound" aria-label="Mute sound" title="Sound">♪</button>
+    <button class="icon" id="menu" aria-label="Sector map" title="Sector map">▦</button>
+  </header>
+  <section class="heading">
+    <div><div class="eyebrow" id="designation">01 / PUMP ANNEX</div><h1 id="sector">First Contact</h1></div>
+    <button id="help" class="help">Field guide <b>?</b></button>
+  </section>
+  <div class="workspace">
+    <div class="board">
+      <div class="boardline"><span><i></i> ECHO IMAGING</span><span id="pos">LIFT / ONLINE</span></div>
+      <canvas id="view" aria-label="Rescue map. Swipe or use the movement controls."></canvas>
+      <div class="boardline bottom"><span>DEPTH <b id="depth">040 M</b></span><span>SECTOR <b id="num">01</b></span></div>
+    </div>
+    <aside class="console">
+      <div class="metrics">
+        <div><small>BEACONS</small><strong id="beacons">0 / 2</strong></div>
+        <div><small>PULSE TARGET</small><strong id="scans">0 / 5</strong></div>
+        <div><small>BEST</small><strong id="best">···</strong></div>
+      </div>
+      <div class="message" role="status"><span class="lamp"></span><span id="message">Pulse to map the passage.</span></div>
+      <div class="controls">
+        <div class="dpad" aria-label="Movement">
+          <button class="up" data-move="0" aria-label="Move up">↑</button>
+          <button class="left" data-move="3" aria-label="Move left">←</button>
+          <button class="down" data-move="2" aria-label="Move down">↓</button>
+          <button class="right" data-move="1" aria-label="Move right">→</button>
+        </div>
+        <button id="pulse" class="pulse"><span class="pulsemark">◉</span><span>PULSE<small>SPACE</small></span></button>
+      </div>
+      <div class="footer"><span>SWIPE · TAP A NEIGHBOR · ARROWS</span><button id="restart">Restart</button></div>
+      <div class="signal-strip" aria-hidden="true">
+        <span>RETURN CARRIER</span>
+        <svg viewBox="0 0 230 34" preserveAspectRatio="none"><path class="baseline" d="M0 17H230"/><path class="trace" d="M0 17H20l6-4 5 9 5-15 7 21 7-17 5 6h30l5-3 4 6 4-11 4 14 6-6h25l5-3 3 5 4-8 4 12 5-6h39l4-4 4 8 5-4h10"/></svg>
+        <span id="carrier">LISTENING</span>
+      </div>
+      <div id="extras" hidden></div>
+    </aside>
+  </div>
+</main>
+<dialog id="panel"><div class="sheet" id="sheet"></div></dialog>
+<script>
+(()=>{
+'use strict';
+const game=(()=>{
+const directions = [[0,-1],[1,0],[0,1],[-1,0]];
+
+const plans = [
+  ['First Contact', 'Pump Annex', 5, [
+    '###########','#..C......#','#.####.##.#','#......##.#','#.###.....#','#.#..###..#','#....C....#','#S#########','###########']],
+  ['Blue Intake', 'Pump Annex', 6, [
+    '###########','#....#...C#','#.##.#.##.#','#..#...#..#','##.#####.##','#..C...#..#','#.####....#','#S....d...#','###########']],
+  ['Resonance Lock', 'Flooded Works', 6, [
+    '###########','#....#...C#','#.##.g.##.#','#..#.#....#','#.r..#.#..#','#.##.#.####','#..#.#.C..#','#S....#####','###########']],
+  ['Crossing Watch', 'Flooded Works', 6, [
+    '###########','#....C....#','#.##.#.##.#','#..#.#.#..#','#..d...d..#','##.###.##.#','#C...#...C#','#....S....#','###########']],
+  ['The Long Return', 'Flooded Works', 7, [
+    '###########','#C..#...C.#','###.#.###.#','#...#.#...#','#.#.g...#.#','#.#.#.###.#','#.r.#...#.#','#S..#.#..C#','###########']],
+  ['Copper Junction', 'Relay Deep', 7, [
+    '###########','#....C....#','#.###.###.#','#..r#...#.#','##..g.d...#','#...#.###.#','#C..#...#C#','#....S....#','###########']],
+  ['Dead Signal', 'Relay Deep', 8, [
+    '###########','#C....#..C#','#.##..#.#.#','#....dg.#.#','###.#.#...#','#r..#.#.#.#','#.#...#.#C#','#S....g...#','###########']],
+  ['The Last Relay', 'Relay Deep', 8, [
+    '###########','#C..#....C#','#.#.#.###.#','#.#.g...#.#','#.r.#.d...#','#.#.#.###.#','#C..#...#C#','#....S....#','###########']],
+];
+
+const width = 11, height = 9;
+const index = (x,y) => y*width+x;
+const point = i => [i%width, Math.floor(i/width)];
+function neighbor(i,d) {
+  const [x,y]=point(i), [dx,dy]=directions[d];
+  const nx=x+dx, ny=y+dy;
+  return nx>=0&&ny>=0&&nx<width&&ny<height ? index(nx,ny) : -1;
+}
+
+const sectors = plans.map(([name,zone,budget,rows]) => {
+  if (rows.length!==height || rows.some(row=>row.length!==width)) throw Error('Invalid sector layout');
+  const cells=[...rows.join('')];
+  const find = char => cells.flatMap((c,i)=>c===char?[i]:[]);
+  const plain = i => cells[i]==='.';
+  const patrols = find('d').map(center=>{
+    const axis = [1,0].find(d=>plain(neighbor(center,d)) && plain(neighbor(center,(d+2)%4)));
+    if (axis===undefined) return [center];
+    const start=neighbor(center,(axis+2)%4), end=neighbor(center,axis);
+    return [center,end,center,start];
+  });
+  return {name,zone,budget,cells,start:find('S')[0],cores:find('C'),relays:find('r'),gates:find('g'),patrols};
+});
+
+const freshProfile = () => ({best:sectors.map(()=>0),rewards:{like:false,comment:false},sound:true,run:null});
+const open = (s,i,powered) => i>=0 && s.cells[i]!=='#' && (s.cells[i]!=='g'||powered);
+
+function rememberNear(run,s) {
+  run.seen[run.position]=1;
+  for(let d=0;d<4;d++) {
+    const n=neighbor(run.position,d);
+    if(n>=0) run.seen[n]=1;
+  }
+}
+
+function freshRun(level) {
+  const s=sectors[level];
+  const run={level,position:s.start,seen:Array(width*height).fill(0),taken:[],powered:false,
+    patrol:s.patrols.map(()=>({step:0,stun:0})),turn:0,scans:0,bumps:0,won:false};
+  rememberNear(run,s);
+  return run;
+}
+
+const integer = (x,min,max) => Number.isInteger(x)&&x>=min&&x<=max;
+function cleanProfile(raw) {
+  const clean=freshProfile();
+  if(!raw || typeof raw!=='object') return clean;
+  clean.best=sectors.map((_,i)=>integer(raw.best?.[i],0,3)?raw.best[i]:0);
+  for(let i=1;i<sectors.length;i++) if(!clean.best[i-1]) clean.best[i]=0;
+  clean.rewards={like:raw.rewards?.like===true,comment:raw.rewards?.comment===true};
+  clean.sound=raw.sound!==false;
+  const r=raw.run;
+  if(!r||!integer(r.level,0,sectors.length-1)||r.level>0&&!clean.best[r.level-1]) return clean;
+  const s=sectors[r.level];
+  if(!integer(r.position,0,width*height-1)||!open(s,r.position,r.powered===true)) return clean;
+  if(!Array.isArray(r.seen)||r.seen.length!==width*height||r.seen.some(v=>v!==0&&v!==1)) return clean;
+  if(!Array.isArray(r.taken)||r.taken.some(v=>!s.cores.includes(v))||new Set(r.taken).size!==r.taken.length) return clean;
+  if(!Array.isArray(r.patrol)||r.patrol.length!==s.patrols.length||r.patrol.some((p,i)=>!p||!integer(p.step,0,s.patrols[i].length-1)||!integer(p.stun,0,2))) return clean;
+  if(!integer(r.turn,0,100000)||!integer(r.scans,0,r.turn)||!integer(r.bumps,0,r.turn)) return clean;
+  const won=r.won===true;
+  if(won&&(r.position!==s.start||r.taken.length!==s.cores.length)) return clean;
+  clean.run={level:r.level,position:r.position,seen:r.seen.slice(),taken:r.taken.slice(),
+    powered:r.powered===true,patrol:r.patrol.map(p=>({...p})),turn:r.turn,scans:r.scans,bumps:r.bumps,won};
+  rememberNear(clean.run,s);
+  if(won) settle(clean);
+  return clean;
+}
+
+function scoutPositions(run) {
+  return sectors[run.level].patrols.map((path,i)=>path[run.patrol[i].step]);
+}
+
+function pulseMap(run) {
+  const s=sectors[run.level], radius=5;
+  const distances=new Map([[run.position,0]]);
+  const queue=[run.position];
+  for(const cell of queue) {
+    const dist=distances.get(cell);
+    if(dist>=radius) continue;
+    for(let d=0;d<4;d++) {
+      const next=neighbor(cell,d);
+      if(next<0||distances.has(next)) continue;
+      distances.set(next,dist+1);
+      if(open(s,next,run.powered)) queue.push(next);
+    }
+  }
+  return distances;
+}
+
+function action(run,input) {
+  if(!run||run.won||run.turn>=100000) return null;
+  const s=sectors[run.level], old=run.position;
+  const scouts=scoutPositions(run);
+  let pulse=null, relay=false, core=false, hit=false;
+  if(input==='pulse') {
+    pulse=pulseMap(run);
+    for(const i of pulse.keys()) run.seen[i]=1;
+    run.scans++;
+    if(!run.powered&&s.relays.some(i=>pulse.has(i))) {
+      run.powered=true;
+      relay=true;
+    }
+    scouts.forEach((i,j)=>{if(pulse.has(i)) run.patrol[j].stun=2;});
+  } else {
+    if(!integer(input,0,3)) return null;
+    const next=neighbor(old,input);
+    if(!open(s,next,run.powered)) return {blocked:true,gate:s.cells[next]==='g'};
+    run.position=next;
+  }
+  run.turn++;
+  rememberNear(run,s);
+  if(s.cores.includes(run.position)&&!run.taken.includes(run.position)) {
+    run.taken.push(run.position);
+    core=true;
+  }
+  if(run.position===s.start&&run.taken.length===s.cores.length) {
+    run.won=true;
+  } else {
+    for(let i=0;i<scouts.length;i++) {
+      const guard=run.patrol[i], path=s.patrols[i];
+      if(guard.stun>0) {
+        guard.stun--;
+        continue;
+      }
+      guard.step=(guard.step+1)%path.length;
+      if(run.position===path[guard.step]||run.position===scouts[i]) hit=true;
+    }
+    if(hit) {
+      run.bumps++;
+      run.position=s.start;
+      rememberNear(run,s);
+    }
+  }
+  return {old,pulse,relay,core,hit,won:run.won};
+}
+
+function rating(run) {
+  return 1+Number(run.bumps===0)+Number(run.scans<=sectors[run.level].budget);
+}
+
+function settle(profile) {
+  if(profile.run?.won) {
+    const {level}=profile.run;
+    profile.best[level]=Math.max(profile.best[level],rating(profile.run));
+  }
+}
+
+function mergeProfiles(local,remote) {
+  const incoming=cleanProfile(remote);
+  return {...local,best:local.best.map((v,i)=>Math.max(v,incoming.best[i])),
+    rewards:{like:local.rewards.like||incoming.rewards.like,comment:local.rewards.comment||incoming.rewards.comment},
+    run:local.run||incoming.run};
+}
+
+return {directions,sectors,point,neighbor,freshProfile,freshRun,cleanProfile,mergeProfiles,action,settle,rating,width,height,scoutPositions};
+})();
+const makeScene=(()=>{
+const {width,height,point,scoutPositions}=game;
+
+const tile=48, margin=25;
+const size=[width*tile+margin*2,height*tile+margin*2];
+const themes=[
+  {ground:'#0b2028',metal:'#1d3541',edge:'#426272',warm:'#ffc680'},
+  {ground:'#12232e',metal:'#263b4d',edge:'#506780',warm:'#fabb83'},
+  {ground:'#222333',metal:'#3c3849',edge:'#6c526a',warm:'#ffc287'},
+];
+const noise = i => (Math.sin(i*78.233+17.37)*43758.5453)%1+1;
+const center = i => {
+  const [x,y]=point(i);
+  return [margin+x*tile+tile/2,margin+y*tile+tile/2];
+};
+
+function makeScene(canvas) {
+  const ctx=canvas.getContext('2d',{alpha:false});
+  let scale=1, offsetX=0, offsetY=0, cssWidth=1, cssHeight=1;
+  function resize() {
+    const rect=canvas.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2);
+    cssWidth=rect.width;
+    cssHeight=rect.height;
+    const pixelsX=Math.max(1,Math.round(cssWidth*dpr)), pixelsY=Math.max(1,Math.round(cssHeight*dpr));
+    if(canvas.width!==pixelsX||canvas.height!==pixelsY) {
+      canvas.width=pixelsX;
+      canvas.height=pixelsY;
+    }
+    scale=Math.min(cssWidth/size[0],cssHeight/size[1]);
+    offsetX=(cssWidth-size[0]*scale)/2;
+    offsetY=(cssHeight-size[1]*scale)/2;
+  }
+
+  function rect(x,y,w,h,r,color,stroke) {
+    ctx.beginPath();
+    ctx.roundRect(x,y,w,h,r);
+    ctx.fillStyle=color;
+    ctx.fill();
+    if(stroke) {ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke();}
+  }
+  function disk(x,y,r,color) {
+    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();
+  }
+  function line(x,y,x2,y2,color,w=1) {
+    ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x2,y2);ctx.lineWidth=w;ctx.strokeStyle=color;ctx.stroke();
+  }
+  function halo(x,y,r,color) {
+    const g=ctx.createRadialGradient(x,y,1,x,y,r);
+    g.addColorStop(0,color);g.addColorStop(1,'transparent');
+    disk(x,y,r,g);
+  }
+  function label(text,x,y,color,px=10) {
+    ctx.font='700 '+px+'px monospace';ctx.textAlign='center';ctx.fillStyle=color;ctx.fillText(text,x,y);
+  }
+  function diamond(x,y,r,color) {
+    ctx.beginPath();ctx.moveTo(x,y-r);ctx.lineTo(x+r*.78,y);ctx.lineTo(x,y+r);ctx.lineTo(x-r*.78,y);ctx.closePath();
+    ctx.fillStyle=color;ctx.fill();
+  }
+  function plate(x,y,i,p,wall) {
+    const left=x-23, top=y-23;
+    if(wall) {
+      rect(left,top+4,46,44,3,'#081219');
+      rect(left,top-2,46,43,3,p.metal,p.edge);
+      rect(left+5,top+4,36,27,2,'#102330','#263b46');
+      for(let q=0;q<5;q++) line(left+9,top+9+q*4,left+37,top+9+q*4,p.edge,1);
+      line(left+4,top+38,left+42,top+38,'#627584');
+      for(const dx of [5,40]) disk(left+dx,top+35,1.4,'#7c9296');
+      return;
+    }
+    rect(left,top,46,46,3,p.ground,'#29434d');
+    if(i%9===3) {
+      ctx.beginPath();ctx.ellipse(x+4,y+8,13,8,-.21,0,Math.PI*2);
+      ctx.fillStyle='#4d8b9850';ctx.fill();
+      line(x-6,y+6,x+9,y+3,'#8aaebb5a');
+      line(x+1,y+10,x+12,y+7,'#7dabb24a');
+    }
+    line(left+3,top+2,left+42,top+2,'#294650');
+    line(left+2,top+43,left+43,top+43,'#09171f',2);
+    for(let j=0;j<3;j++){
+      const rx=(noise(i+j*41)%1)*35+left+4, ry=(noise(i+j*29+6)%1)*33+top+6;
+      line(rx,ry,rx+6,ry,'#36525a');
+    }
+    disk(left+5,top+5,1.1,'#385560');
+    disk(left+41,top+41,1.1,'#385560');
+    if(i%14===5) {
+      for(let j=0;j<4;j++) line(left+29+j*3,top+9,left+31+j*3,top+5,'#a1885b94',1.4);
+    }
+  }
+  function elevator(x,y,ready) {
+    rect(x-20,y-20,40,40,6,'#152a33',ready?'#88ffc6':'#6a6260');
+    rect(x-15,y-15,30,30,3,ready?'#245a51':'#342c2b');
+    for(let k=-12;k<=10;k+=6) line(x+k,y+16,x+k+5,y+16,ready?'#8ef0b9':'#f6ad62',2);
+    ctx.beginPath();ctx.moveTo(x-7,y+4);ctx.lineTo(x,y-5);ctx.lineTo(x+7,y+4);
+    ctx.strokeStyle=ready?'#b6ffe0':'#ffc18a';ctx.lineWidth=2;ctx.stroke();
+  }
+  function beacon(x,y,t,taken) {
+    rect(x-14,y+9,28,9,3,'#0a171d','#765a43');
+    rect(x-10,y+4,20,9,2,'#5b3f30','#b98c5f');
+    if(taken) return;
+    y+=Math.sin(t*3+x)*2;
+    halo(x,y-3,26,'#ffad4364');
+    diamond(x,y-5,12,'#f3a052');
+    diamond(x-2,y-6,8,'#ffe1a1');
+    line(x-1,y-16,x+6,y-6,'#fff3c6',1.5);
+    disk(x+12,y-9+Math.sin(t*4)*3,1.2,'#ffdd91');
+  }
+  function gate(x,y,powered) {
+    rect(x-21,y-19,42,38,5,powered?'#20433d':'#3f2b2f',powered?'#6cbca7':'#c0775e');
+    if(!powered) {
+      for(let i=-14;i<=14;i+=7) line(x+i,y-13,x+i,y+12,'#d89065',3);
+      line(x-19,y,x+19,y,'#703d39',4);
+    }
+    disk(x+15,y-13,2.5,powered?'#a0ffca':'#ff885a');
+  }
+  function relay(x,y,powered,t) {
+    const glow=powered?'#90fbb5':'#76eaff';
+    halo(x,y,24,powered?'#82ffad55':'#6eeaff54');
+    rect(x-13,y-14,26,28,5,'#162a36',glow);
+    for(let n=1;n<4;n++) {
+      ctx.beginPath();ctx.arc(x,y-1,n*3+1,Math.PI*1.2,Math.PI*1.8);
+      ctx.strokeStyle=glow;ctx.lineWidth=1.5;ctx.stroke();
+    }
+    disk(x,y+3,2+Math.sin(t*4)*.45,glow);
+  }
+  function drone(x,y,stunned,t) {
+    const color=stunned?'#97b9ff':'#ff8d86';
+    halo(x,y,28,stunned?'#7e98ff42':'#ff645947');
+    ctx.beginPath();ctx.ellipse(x,y+9,15,6,0,0,Math.PI*2);ctx.fillStyle='#040c12a0';ctx.fill();
+    y-=2+Math.sin(t*4+x)*1.5;
+    rect(x-14,y-10,28,20,6,'#6d4f54','#d18b83');
+    rect(x-16,y-6,5,12,2,'#bb8579');
+    rect(x+11,y-6,5,12,2,'#bb8579');
+    rect(x-9,y-6,18,10,4,'#1e1724');
+    disk(x,y-1,4,color);disk(x-1,y-2,1.5,'#ffe2d6');
+    if(stunned) label('Ⅱ',x,y-15,color,10);
+  }
+  function robot(x,y,t,gold) {
+    halo(x,y,42,gold?'#ffb85163':'#71eaff58');
+    ctx.beginPath();ctx.ellipse(x,y+12,18,8,0,0,Math.PI*2);ctx.fillStyle='#000a12ba';ctx.fill();
+    const color=gold?'#ffc276':'#86fff0';
+    y+=Math.sin(t*4)*.75;
+    rect(x-16,y-6,8,22,3,'#20323f','#607886');
+    rect(x+8,y-6,8,22,3,'#20323f','#607886');
+    for(let k=0;k<4;k++) {
+      line(x-15,y-2+k*4,x-9,y-2+k*4,'#88a2aa');
+      line(x+9,y-2+k*4,x+15,y-2+k*4,'#88a2aa');
+    }
+    const shell=ctx.createLinearGradient(x-10,y-16,x+13,y+14);
+    shell.addColorStop(0,gold?'#ffe2a4':'#dbf6e7');shell.addColorStop(.48,gold?'#bd8753':'#8fb3b4');shell.addColorStop(1,'#36515d');
+    rect(x-11,y-15,22,26,6,shell,'#e0f4e3');
+    rect(x-8,y-11,16,11,4,'#122834','#627b82');
+    rect(x-5,y-8,10,5,2,color);
+    line(x-5,y+4,x+5,y+4,'#293f49',2);
+    line(x+7,y-15,x+10,y-22,'#849b9e',2);
+    disk(x+10,y-22,2.4,color);
+  }
+  function frame(run,sector,t,effects,rewards) {
+    const p=themes[run.level<2?0:run.level<5?1:2];
+    ctx.setTransform(canvas.width/cssWidth,0,0,canvas.height/cssHeight,0,0);
+    ctx.fillStyle='#09151d';ctx.fillRect(0,0,cssWidth,cssHeight);
+    ctx.translate(offsetX,offsetY);ctx.scale(scale,scale);
+    const back=ctx.createLinearGradient(0,0,0,size[1]);
+    back.addColorStop(0,'#13252e');back.addColorStop(.48,'#0b1b24');back.addColorStop(1,'#19232b');
+    rect(4,4,size[0]-8,size[1]-8,12,back,'#45616b');
+    rect(12,12,size[0]-24,size[1]-24,8,'#0a171e','#223c47');
+    for(let k=0;k<9;k++) {
+      const x=margin+k*60;
+      line(x,16,x+18,16,'#52707a',1);
+      line(x,size[1]-16,x+18,size[1]-16,'#314c55',1);
+    }
+    for(const x of [12,size[0]-12]) for(const y of [13,size[1]-13]) {
+      disk(x,y,4,'#54666c');line(x-2,y+1,x+2,y-1,'#0b1419');
+    }
+    const sweep=margin+((t*29)%(height*tile));
+    for(let i=0;i<sector.cells.length;i++) {
+      const [x,y]=center(i);
+      const pulse=effects.pulse, distance=pulse?.distances.get(i);
+      const waiting=distance!==undefined&&!pulse.priorSeen[i]&&t-pulse.time<distance*.085;
+      if(!run.seen[i]||waiting) {
+        const glow=Math.max(0,1-Math.abs(y-sweep)/53);
+        rect(x-23,y-23,46,46,3,'#102029','#1b333d');
+        ctx.globalAlpha=.22+glow*.31;
+        line(x-2,y,x+2,y,'#587f88');line(x,y-2,x,y+2,'#587f88');
+        if(i%13===0) label('·',x-15,y+17,'#426672',9);
+        ctx.globalAlpha=1;
+        continue;
+      }
+      const cell=sector.cells[i];
+      plate(x,y,i,p,cell==='#');
+      if(cell==='S') elevator(x,y,run.taken.length===sector.cores.length);
+      if(cell==='C') beacon(x,y,t,run.taken.includes(i));
+      if(cell==='r') relay(x,y,run.powered,t);
+      if(cell==='g') gate(x,y,run.powered);
+    }
+    scoutPositions(run).forEach((i,j)=>{
+      if(!run.seen[i]) return;
+      const [x,y]=center(i);
+      const unit=run.patrol[j], path=sector.patrols[j], next=path[(unit.step+1)%path.length];
+      if(unit.stun===0&&next!==i&&run.seen[next]) {
+        const [nx,ny]=center(next);
+        line(x,y,nx,ny,'#db77757b',2);
+        disk(nx,ny,3,'#ff9984');
+      }
+      drone(x,y,unit.stun,t);
+    });
+    if(effects.pulse) {
+      const age=t-effects.pulse.time;
+      for(const [i,d] of effects.pulse.distances) {
+        const f=age-d*.085;
+        if(f<0||f>.36) continue;
+        const [x,y]=center(i), alpha=1-f/.36;
+        ctx.globalAlpha=alpha;
+        const tint=rewards.comment&&d%2?'#c0a9ff':'#7be8ed';
+        rect(x-22,y-22,44,44,4,tint+'25',tint);
+        for(let a=0;a<4;a++) {
+          const angle=a*Math.PI/2+d, radius=9+f*48;
+          disk(x+Math.cos(angle)*radius,y+Math.sin(angle)*radius,1.4,tint);
+        }
+      }
+      ctx.globalAlpha=1;
+    }
+    let [x,y]=center(run.position);
+    if(effects.move) {
+      const k=Math.min(1,(t-effects.move.time)/.17);
+      const [px,py]=center(effects.move.old);
+      const ease=1-(1-k)**3;
+      x=px+(x-px)*ease;y=py+(y-py)*ease-Math.sin(k*Math.PI)*3;
+    }
+    robot(x,y,t,rewards.like);
+    for(const f of effects.sparks) {
+      const age=t-f.time;
+      if(age>=.65) continue;
+      ctx.globalAlpha=1-age/.65;
+      disk(f.x+f.dx*age,f.y+f.dy*age-16*age+36*age**2,2.2,f.color);
+    }
+    ctx.globalAlpha=1;
+  }
+  function at(clientX,clientY) {
+    const bounds=canvas.getBoundingClientRect();
+    const x=Math.floor(((clientX-bounds.left-offsetX)/scale-margin)/tile);
+    const y=Math.floor(((clientY-bounds.top-offsetY)/scale-margin)/tile);
+    return x>=0&&x<width&&y>=0&&y<height ? y*width+x : -1;
+  }
+  return {resize,frame,at,center};
+}
+
+return makeScene;
+})();
+// Optional host integration. Gameplay never awaits SDK discovery or registration.
+function bridge({host=()=>globalThis.neonlib,read,write,changed=()=>{},schedule=setTimeout,cancel=clearTimeout,timeout=5000}){
+ const game='signal-below';let alive=true,epoch=0,sdk=null,started=false,ended=false,startHost=null,loadStarted=false,cloudReady=false,dirty=false,saving=false,timers=new Set(),entries=new Map(),support={like:false,comment:false};
+ const later=(fn,ms)=>{let id=schedule(()=>{timers.delete(id);fn();},ms);timers.add(id);return id;};
+ const safeStop=fn=>{try{fn?.();}catch{}};
+ const getHost=()=>{try{let h=host();return h&&typeof h==='object'?h:null;}catch{return null;}};
+ const emit=e=>{if(alive)try{changed(e);}catch{}};
+ function call(h,name){try{if(typeof h?.[name]!=='function')return false;Promise.resolve(h[name]()).catch(()=>{});return true;}catch{return false;}}
+ function notifyStart(){if(started&&!ended&&sdk&&startHost!==sdk&&call(sdk,'gameStart'))startHost=sdk;}
+ function save(){dirty=true;flush();}
+ function flush(){if(!alive||saving||!dirty||!cloudReady||typeof sdk?.saveUserGameState!=='function')return;let snapshot;try{snapshot={game,v:1,profile:JSON.parse(JSON.stringify(read()))};}catch{return;}dirty=false;saving=true;let destination=sdk,gen=epoch,settled=false;
+  const finish=ok=>{if(settled||!alive||gen!==epoch)return;settled=true;cancel(timer);timers.delete(timer);saving=false;if(!ok)dirty=true;else{emit({type:'saved'});if(dirty)flush();}};
+  let timer=later(()=>finish(false),timeout);
+  try{Promise.resolve(destination.saveUserGameState(snapshot)).then(r=>finish(r?.code===0),()=>finish(false));}catch{finish(false);}
+ }
+ function reward(kind,e){if(!alive||!e||typeof e!=='object'||typeof e.project_id!=='string'||!e.project_id.trim()||kind==='like'&&e.status!==true||kind==='comment'&&typeof e.content!=='string')return;let p=read();if(p.rewards?.[kind])return;p.rewards={...p.rewards,[kind]:true};write(p,false);emit({type:'reward',kind});save();}
+ function reg(kind,name,attempt=0){if(!alive||entries.has(kind)||typeof sdk?.[name]!=='function')return;let gen=epoch,entry={live:false,expired:false,stop:null};entries.set(kind,entry);
+  let timer=later(()=>{if(!alive||gen!==epoch)return;entry.expired=true;if(attempt<1&&entries.get(kind)===entry)entries.delete(kind);support[kind]=false;emit({type:'support',...support});if(attempt<1)later(()=>reg(kind,name,attempt+1),1000);},timeout);
+  const callback=e=>{if(alive&&gen===epoch&&entry.live&&!entry.expired)reward(kind,e);};
+  const done=r=>{cancel(timer);timers.delete(timer);let stop=r?.code===0&&typeof r?.data?.unsubscribe==='function'?r.data.unsubscribe:null;if(!alive||gen!==epoch||entry.expired){safeStop(stop);return;}if(r?.code!==0){entry.expired=true;if(r?.code===-2&&attempt<1){entries.delete(kind);later(()=>reg(kind,name,attempt+1),1000);}return;}entry.live=true;entry.stop=stop;support[kind]=true;emit({type:'support',...support});};
+  try{Promise.resolve(sdk[name](callback)).then(done,()=>done(null));}catch{done(null);}
+ }
+ function recognized(raw){return !!raw&&typeof raw==='object'&&!Array.isArray(raw)&&raw.game===game&&raw.v===1&&raw.profile&&typeof raw.profile==='object'&&!Array.isArray(raw.profile);}
+ function connect(){if(!alive)return;let h=getHost();if(!h)return;if(sdk!==h){epoch++;for(let e of entries.values()){e.expired=true;safeStop(e.stop);}entries.clear();support={like:false,comment:false};cloudReady=false;loadStarted=false;saving=false;sdk=h;emit({type:'connected'});}
+  if(!loadStarted&&typeof sdk.loadUserGameState==='function'){loadStarted=true;let gen=epoch,resolved=false;later(()=>{if(alive&&gen===epoch&&!resolved){resolved=true;cloudReady=false;emit({type:'cloudUnavailable'});}},timeout);
+   try{Promise.resolve(sdk.loadUserGameState()).then(raw=>{if(!alive||gen!==epoch||resolved)return;resolved=true;if(recognized(raw)){write(raw.profile,true);emit({type:'cloud'});}cloudReady=recognized(raw)||!!raw&&typeof raw==='object'&&!Array.isArray(raw)&&Object.keys(raw).length===0;if(dirty)flush();},()=>{if(gen===epoch){resolved=true;cloudReady=false;}});}catch{resolved=true;cloudReady=false;}}
+  notifyStart();reg('like','onLike');reg('comment','onComment');if(dirty)flush();
+ }
+ function probe(n=0){connect();if(alive&&n<8)later(()=>probe(n+1),1500);}
+ function nudge(){connect();}const external=typeof globalThis.addEventListener==='function';if(external)for(let name of ['pointerdown','focus','resize'])globalThis.addEventListener(name,nudge,{passive:true});probe();
+ return{save,connect,support:()=>({...support}),prepare(){started=false;ended=false;startHost=null;},start(){connect();if(started&&!ended){notifyStart();return;}started=true;ended=false;notifyStart();},end(){if(!started||ended)return;ended=true;let destination=startHost||getHost();if(destination)call(destination,'gameOver');},
+  viewport(){let h=getHost();try{let v=h?.getGameViewport?.();if(v&&typeof v.then==='function'){Promise.resolve(v).catch(()=>{});return null;}if(v&&Number.isFinite(v.width)&&Number.isFinite(v.height)&&v.width>0&&v.height>0)return{width:v.width,height:v.height,density:Number.isFinite(v.density)&&v.density>0?v.density:1};}catch{}return null;},
+  stop(){if(!alive)return;alive=false;epoch++;if(external)for(let name of ['pointerdown','focus','resize'])globalThis.removeEventListener(name,nudge);for(let t of timers)cancel(t);timers.clear();for(let e of entries.values()){e.expired=true;safeStop(e.stop);}entries.clear();support={like:false,comment:false};}
+ };
+}
+
+
+
+
+const saveKey='signal-below-v1';
+const byId=id=>document.getElementById(id);
+const panel=byId('panel'), sheet=byId('sheet'), canvas=byId('view');
+const scene=makeScene(canvas);
+const effects={pulse:null,move:null,sparks:[]};
+let profile=game.freshProfile(), sdk, audio, nextRepeat=0, pointer=null;
+let notice='Pulse to reveal the passage. Recover the beacons, then return to the lift.';
+let frameTime=0, lastFrame=0;
+
+try {
+  const saved=JSON.parse(localStorage.getItem(saveKey));
+  if(saved?.game==='signal-below'&&saved.v===1) profile=game.cleanProfile(saved.profile);
+} catch {}
+
+function saveLocal() {
+  try {
+    localStorage.setItem(saveKey,JSON.stringify({game:'signal-below',v:1,profile}));
+  } catch {}
+}
+
+function writeProfile(incoming,remote) {
+  profile=remote?game.mergeProfiles(profile,incoming):game.cleanProfile(incoming);
+  if(profile.run?.won) game.settle(profile);
+  saveLocal();
+  render();
+}
+
+function connect() {
+  sdk=bridge({
+    read:()=>({...profile}),
+    write:writeProfile,
+    changed:event=>{
+      if(event.type==='reward') {
+        notice=event.kind==='like'?'Brass chassis unlocked.':'Violet echo unlocked.';
+        tone([494,659,988]);
+      }
+      if(event.type==='reward'||event.type==='support'||event.type==='connected') render();
+    },
+  });
+  render();
+}
+
+function sectorNumber(level) {return String(level+1).padStart(2,'0');}
+const stars=n=>'★'.repeat(n)+'☆'.repeat(3-n);
+const preview=game.freshRun(0);
+function currentRun() {return profile.run||preview;}
+function render() {
+  const run=currentRun(), s=game.sectors[run.level];
+  byId('sector').textContent=s.name;
+  byId('designation').textContent=sectorNumber(run.level)+' / '+s.zone.toUpperCase();
+  byId('num').textContent=sectorNumber(run.level);
+  byId('depth').textContent=String(40+run.level*28).padStart(3,'0')+' M';
+  const [x,y]=game.point(run.position);
+  byId('pos').textContent=run.position===s.start?'LIFT / ONLINE':`COL ${x} / ROW ${y}`;
+  byId('beacons').textContent=run.taken.length+' / '+s.cores.length;
+  byId('scans').textContent=run.scans+' / '+s.budget;
+  byId('best').textContent=stars(profile.best[run.level]);
+  byId('carrier').textContent=run.won?'EXTRACTION COMPLETE':run.powered?'RELAY ONLINE':run.scans?'ECHO LOCKED':'LISTENING';
+  byId('sound').setAttribute('aria-label',profile.sound?'Mute sound':'Enable sound');
+  byId('sound').textContent=profile.sound?'♪':'×';
+  byId('message').textContent=notice;
+  const extras=byId('extras'), support=sdk?.support();
+  const hints=[];
+  if(support?.like||profile.rewards.like) hints.push(profile.rewards.like?'Brass chassis equipped.':'Like in GameWave to unlock a brass chassis.');
+  if(support?.comment||profile.rewards.comment) hints.push(profile.rewards.comment?'Violet echo equipped.':'Comment in GameWave to unlock violet echoes.');
+  extras.hidden=!hints.length;
+  extras.textContent=hints.join(' ');
+}
+
+function unlockAudio() {
+  if(!profile.sound) return;
+  try {
+    audio??=new (window.AudioContext||window.webkitAudioContext)();
+    if(audio.state==='suspended') audio.resume().catch(()=>{});
+  } catch {}
+}
+function tone(notes,volume=.04) {
+  if(!audio||!profile.sound||document.hidden) return;
+  notes.forEach((hz,i)=>{
+    const at=audio.currentTime+i*.075, wave=audio.createOscillator(), gain=audio.createGain();
+    wave.type='sine';
+    wave.frequency.setValueAtTime(hz,at);
+    gain.gain.setValueAtTime(.001,at);
+    gain.gain.exponentialRampToValueAtTime(volume,at+.02);
+    gain.gain.exponentialRampToValueAtTime(.001,at+.18);
+    wave.connect(gain);gain.connect(audio.destination);wave.start(at);wave.stop(at+.20);
+    wave.onended=()=>{wave.disconnect();gain.disconnect();};
+  });
+}
+
+function burst(cell,color) {
+  const [x,y]=scene.center(cell);
+  for(let i=0;i<14;i++) {
+    const angle=i*Math.PI*2/14;
+    effects.sparks.push({x,y,time:frameTime,dx:Math.cos(angle)*38,dy:Math.sin(angle)*38,color});
+  }
+  effects.sparks=effects.sparks.slice(-42);
+}
+
+function execute(input) {
+  if(panel.open||document.hidden) return;
+  if(profile.run?.won) {result();return;}
+  const run=profile.run||game.freshRun(0), priorSeen=run.seen.slice();
+  const outcome=game.action(run,input);
+  if(!outcome) return;
+  unlockAudio();
+  if(outcome.blocked) {
+    notice=outcome.gate?'Sealed gate. Send a pulse toward a relay.':'Bulkhead. Try another passage.';
+    tone([118],.025);render();
+    return;
+  }
+  profile.run=run;
+  sdk.start();
+  if(outcome.pulse) {
+    effects.pulse={time:frameTime,distances:outcome.pulse,priorSeen};
+    tone([182,272,409],.046);
+  }
+  if(!outcome.hit&&outcome.old!==run.position) effects.move={old:outcome.old,time:frameTime};
+  if(outcome.hit) {
+    effects.move=null;
+    burst(run.position,'#ff896d');tone([155,104],.05);
+    notice='Scout contact. Back at the lift with your beacons and map.';
+  } else if(outcome.relay) {
+    burst(run.position,'#93ffbd');tone([330,493,740]);
+    notice='Relay online. The copper gates are open.';
+  } else if(outcome.core) {
+    burst(run.position,'#ffc487');tone([392,587,784]);
+    notice=run.taken.length===game.sectors[run.level].cores.length?'All beacons secured. Return to the lift.':'Beacon secured. Keep searching.';
+  } else if(outcome.pulse) {
+    notice='Echo mapped. Reached scouts pause briefly.';
+  } else {
+    tone([96],.019);
+    if(run.taken.length===game.sectors[run.level].cores.length) notice='Lift is ready. Follow your map back.';
+    else notice='Search the passage for amber beacons.';
+  }
+  if(outcome.won) {
+    game.settle(profile);
+    sdk.end();
+    notice='Extraction complete.';
+    burst(run.position,'#a5ffcb');tone([392,523,659,784],.052);
+  }
+  saveLocal();
+  sdk.save();
+  render();
+  if(outcome.won) result();
+}
+
+function show(content) {
+  sheet.innerHTML=content;
+  if(!panel.open) panel.showModal();
+}
+function close() {if(panel.open)panel.close();}
+function begin(level) {
+  if(profile.run&&!profile.run.won) sdk.end();
+  sdk.prepare();
+  profile.run=game.freshRun(level);
+  effects.pulse=null;effects.move=null;effects.sparks=[];
+  notice='Pulse to reveal the passage. Recover the beacons, then return to the lift.';
+  close();saveLocal();sdk.save();render();
+}
+const button=(text,action,primary=false)=>`<button class="button${primary?' primary':''}" data-action="${action}">${text}</button>`;
+function guide() {
+  show(`<div class="tag">OPERATOR BRIEF</div><h2>Find the signal.</h2>
+    <p><strong>Pulse</strong> sends an echo five steps along connected passages. Echoes reveal nearby walls and tiles, power relays and briefly pause any scout they reach. Your map stays visible.</p>
+    <p><strong>Move</strong> with the arrows, WASD, a swipe or a tap on an adjacent tile. Pick up every amber beacon by driving over it. Return to the lift when it turns green.</p>
+    <p>Red scouts move when you act. A red dot shows the next tile when visible. Contact sends you to the lift with your discoveries intact.</p>
+    <p>Earn one star for extraction, one for zero contacts, and one for staying within the pulse target. You can keep scanning beyond the target.</p>
+    <div class="sheetbuttons">${button('Back to the sector','close',true)}</div>`);
+}
+function result() {
+  const run=profile.run, rating=game.rating(run), last=run.level===game.sectors.length-1;
+  const count=(n,word)=>n+' '+word+(n===1?'':'s');
+  show(`<div class="tag">${last?'DIVISION REPORT':'EXTRACTION COMPLETE'}</div><h2>${last?'Signal restored.':'Back on the surface.'}</h2>
+    <div class="resultStars" aria-label="${rating} out of 3 stars">${stars(rating)}</div>
+    <p>${count(run.taken.length,'beacon')} recovered · ${count(run.scans,'pulse')} · ${count(run.bumps,'contact')}</p>
+    <div class="sheetbuttons">${last?button('Sector map','map',true):button('Next sector','next',true)}${button('Replay','replay')}${button('View map','close')}</div>`);
+}
+function map() {
+  const options=game.sectors.map((s,i)=>{
+    const unlocked=i===0||profile.best[i-1]>0;
+    return `<button class="button" data-action="level-${i}" ${unlocked?'':'disabled'}>${sectorNumber(i)} · ${s.name}<span>${unlocked?stars(profile.best[i]):'LOCKED'}</span></button>`;
+  }).join('');
+  show(`<div class="tag">RESCUE DIRECTORY</div><h2>Sector map</h2><div class="sectorlist">${options}</div>
+    <div class="sheetbuttons">${button('Back','close',true)}${button('Restart sector','restart')}</div>`);
+}
+function confirmRestart(level) {
+  show(`<div class="tag">LIFT CONTROL</div><h2>Start ${game.sectors[level].name}?</h2>
+    <p>This replaces the current rescue checkpoint. Your best stars and cosmetics are saved.</p>
+    <div class="sheetbuttons">${button('Start sector','begin-'+level,true)}${button('Keep checkpoint','close')}</div>`);
+}
+sheet.addEventListener('click',event=>{
+  const choice=event.target.closest('button')?.dataset.action;
+  if(choice==='close') close();
+  if(choice==='map') map();
+  if(choice==='restart') confirmRestart(currentRun().level);
+  if(choice==='replay') begin(currentRun().level);
+  if(choice==='next'&&profile.run?.won&&profile.run.level+1<game.sectors.length) begin(profile.run.level+1);
+  if(choice?.startsWith('begin-')) begin(Number(choice.slice(6)));
+  if(choice?.startsWith('level-')) {
+    const level=Number(choice.slice(6));
+    if(level===currentRun().level&&!profile.run?.won) close();
+    else if(profile.run?.turn>0&&!profile.run.won) confirmRestart(level);
+    else begin(level);
+  }
+});
+byId('help').addEventListener('click',guide);
+byId('menu').addEventListener('click',map);
+byId('restart').addEventListener('click',()=>confirmRestart(currentRun().level));
+byId('sound').addEventListener('click',()=>{
+  profile.sound=!profile.sound;
+  if(profile.sound){unlockAudio();tone([540]);}
+  saveLocal();sdk.save();render();
+});
+byId('pulse').addEventListener('click',()=>execute('pulse'));
+document.querySelectorAll('[data-move]').forEach(b=>b.addEventListener('click',()=>execute(Number(b.dataset.move))));
+const keys={ArrowUp:0,w:0,ArrowRight:1,d:1,ArrowDown:2,s:2,ArrowLeft:3,a:3,' ':'pulse'};
+window.addEventListener('keydown',event=>{
+  if(panel.open||event.altKey||event.ctrlKey||event.metaKey) return;
+  const key=event.key.length===1?event.key.toLowerCase():event.key, input=keys[key];
+  if(input===undefined||key===' '&&event.target instanceof HTMLButtonElement) return;
+  event.preventDefault();
+  if(event.repeat&&(input==='pulse'||performance.now()<nextRepeat)) return;
+  nextRepeat=performance.now()+145;
+  execute(input);
+});
+canvas.addEventListener('pointerdown',event=>{
+  if(pointer||!event.isPrimary||event.button!==0) return;
+  pointer={id:event.pointerId,x:event.clientX,y:event.clientY};
+  canvas.setPointerCapture(event.pointerId);
+});
+canvas.addEventListener('pointerup',event=>{
+  if(pointer?.id!==event.pointerId) return;
+  const dx=event.clientX-pointer.x, dy=event.clientY-pointer.y;
+  pointer=null;
+  if(Math.hypot(dx,dy)>16) {
+    execute(Math.abs(dx)>Math.abs(dy)?(dx>0?1:3):(dy>0?2:0));
+    return;
+  }
+  const tile=scene.at(event.clientX,event.clientY);
+  const direction=game.directions.findIndex((_,i)=>game.neighbor(currentRun().position,i)===tile);
+  if(tile>=0&&direction>=0) execute(direction);
+});
+for(const name of ['pointercancel','lostpointercapture']) canvas.addEventListener(name,()=>{pointer=null;});
+document.addEventListener('visibilitychange',()=>{
+  pointer=null;
+  if(document.hidden) saveLocal();
+});
+window.addEventListener('pagehide',()=>{saveLocal();sdk.stop();});
+window.addEventListener('pageshow',event=>{if(event.persisted) connect();});
+window.addEventListener('resize',()=>scene.resize());
+new ResizeObserver(()=>scene.resize()).observe(canvas);
+
+function frame(now) {
+  requestAnimationFrame(frame);
+  if(document.hidden||now-lastFrame<1000/40) return;
+  lastFrame=now;frameTime=now/1000;
+  if(effects.pulse&&frameTime-effects.pulse.time>.82) effects.pulse=null;
+  if(effects.move&&frameTime-effects.move.time>.2) effects.move=null;
+  effects.sparks=effects.sparks.filter(p=>frameTime-p.time<.65);
+  const run=currentRun();
+  scene.frame(run,game.sectors[run.level],frameTime,effects,profile.rewards);
+}
+
+scene.resize();
+connect();
+requestAnimationFrame(frame);
+if(profile.run?.won) result();
+else if(profile.run?.turn) {
+  notice='Checkpoint restored. Continue the rescue.';
+  render();
+}
+
+})();
+</script>
+</body>
+</html>

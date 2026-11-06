@@ -1,0 +1,14 @@
+SIGNAL BELOW · HTML5 IMPORT
+
+Upload the independent ZIP with index.html at the root. index.html and standalone.html contain identical self-contained builds. index-source.html is the editable HTTP-served module entry.
+
+GameWave injects window.neonlib. Ordinary play starts independently of injection. The first accepted movement or pulse calls gameStart where available. Extraction or an explicitly abandoned started rescue calls gameOver once. Loading a checkpoint, reading the field guide and viewing a result are passive. The first accepted action after reload starts the resumed host session.
+
+Local key: signal-below-v1. Cloud envelope: {game:"signal-below",v:1,profile:{...}}. Own checkpoints include the sector, bot position, map, beacon inventory, relay state, scout turns and scoring. Merge best ratings and cosmetics while preserving a local checkpoint. Unknown cloud envelopes are left alone.
+
+A confirmed positive like unlocks the brass chassis. A confirmed direct comment, including an image-only comment, unlocks violet echoes. Optional prompts appear following successful SDK registration. Claimed flags are durable in the local profile and can merge with the game's cloud state. With local saves alone, rewards are scoped to the device/browser. Project IDs remain strings and counts are treated as snapshots. Listeners are cleaned up on page exit.
+
+Official GameWave SDK reference, checked November 6, 2026 (displayed revision October 30):
+https://rg975ojk5z.feishu.cn/wiki/MQg7wMknzieOkukxyWVc4UB0nDh
+
+Validation uses the playable browser build and simulated SDK hosts. Actual GameWave App import and platform interaction remain to be verified.
